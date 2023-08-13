@@ -23,20 +23,24 @@ function _fargs_str(ev::Any)
     rank = ev.rank
     args = ev.args_subset
     if !isempty(args) && haskey(args, :src) && haskey(args, :dest)
+        fargs = ""
         if matches(rank, args[:src])
-            return " -> $(args[:dest])"
+            fargs = " -> $(args[:dest])"
+        elseif matches(rank, args[:dest])
+            fargs = " <- $(args[:src])"
+        elseif ispartof(rank, args[:src])
+            fargs = " -> $(args[:dest])"
+        elseif ispartof(rank, args[:dest])
+            fargs = " <- $(args[:src])"
+        else
+            fargs = ", $(args[:src]) -> $(args[:dest])"
         end
-        if matches(rank, args[:dest])
-            return " <- $(args[:src])"
+
+        if haskey(args, :data)
+            return "$(fargs): $(args[:data])"
+        else
+            return fargs
         end
-        if ispartof(rank, args[:src])
-            return " -> $(args[:dest])"
-        end
-        if ispartof(rank, args[:dest])
-            return " <- $(args[:src])"
-        end
-        # src != rank && dest != rank
-        return ", $(args[:src]) -> $(args[:dest])"
     end
     return ""
 end

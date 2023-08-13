@@ -6,6 +6,7 @@ using MacroTools
 using Printf
 using Serialization
 using DocStringExtensions
+using JSON
 
 Cassette.@context MPITapeCtx
 
@@ -17,6 +18,7 @@ include("printing.jl")
 include("fileio.jl")
 include("communication_graph.jl")
 include("plotting.jl")
+include("dump.jl")
 
 const TIME_START = Ref(0.0)
 const TAPE = DistributedEvent[]

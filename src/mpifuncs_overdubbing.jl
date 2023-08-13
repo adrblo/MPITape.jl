@@ -113,8 +113,16 @@ function new_overdub(mpifunc, srcdest)
     else
         src = srcdest[1]
         dest = srcdest[2]
-        args_quote = quote
-            argvals = (; src = $(src), dest = $(dest))
+        if length(srcdest) > 2
+            # fallback: no argvals
+            args_quote = quote
+                argvals = (; src = $(src), dest = $(dest), data = $(srcdest[3]))
+            end
+        else
+            # fallback: no argvals
+            args_quote = quote
+                argvals = (; src = $(src), dest = $(dest))
+            end
         end
     end
 

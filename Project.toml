@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 Cassette = "7057c7e9-c182-5462-911a-8362d720325c"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Kroki = "b3565e16-c1f2-4fe9-b4ab-221c88942068"
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
@@ -22,8 +23,8 @@ Kroki = "0.2"
 MPI = "0.20"
 MPIPreferences = "0.1"
 MacroTools = "0.5"
-Plots = "1"
 PlotlyJS = "0.18"
+Plots = "1"
 julia = "1.8"
 
 [extras]
