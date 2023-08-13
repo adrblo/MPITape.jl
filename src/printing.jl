@@ -4,11 +4,11 @@ _timestr(time) = @sprintf("%.2E", time)
 
 drop_mpiprefix(f::AbstractString) = replace(f, "MPI_" => "")
 
-function _print_tape_func(::Any, mpievent; showrank = false, prefix = "\t", color = :normal)
-    tstr = "(Δt=" * _timestr(mpievent.t_start) * ")"
-    fargsstr = _fargs_str(mpievent)
-    fstr = rpad(drop_mpiprefix(mpievent.f) * fargsstr, 20)
-    rstr = showrank ? string(mpievent.rank, ": ") : ""
+function _print_tape_func(::Any, DistributedEvent; showrank = false, prefix = "\t", color = :normal)
+    tstr = " (Δt=" * _timestr(DistributedEvent.t_start) * ")"
+    fargsstr = _fargs_str(DistributedEvent)
+    fstr = rpad(drop_mpiprefix(DistributedEvent.f) * fargsstr, 20)
+    rstr = showrank ? string(DistributedEvent.rank, ": ") : ""
     # println(prefix, rstr, fstr, tstr)
     printstyled(prefix, rstr, fstr, tstr, "\n"; color)
 end
@@ -48,8 +48,8 @@ Print the local tape (of the calling MPI rank).
 function print_mytape(; showrank = false)
     rank = getrank()
     println("Rank: ", rank)
-    for mpievent in unsafe_gettape()
-        _print_tape_func(mpievent.f, mpievent; showrank)
+    for DistributedEvent in unsafe_gettape()
+        _print_tape_func(DistributedEvent.f, DistributedEvent; showrank)
     end
     println()
     return nothing
@@ -64,9 +64,9 @@ function print_merged(tape; color = true)
     nranks = length(unique(ev.rank for ev in tape))
     printstyled("Merged Tape of ", nranks, " MPI Ranks: \n"; color = :white, bold = true)
     usecolors = color && nranks <= length(COLORS)
-    for mpievent in tape
-        _print_tape_func(mpievent.f, mpievent; showrank = true,
-                         color = usecolors ? COLORS[mpievent.rank + 1] : :normal)
+    for DistributedEvent in tape
+        _print_tape_func(DistributedEvent.f, DistributedEvent; showrank = true,
+                         color = usecolors ? COLORS[DistributedEvent.rank + 1] : :normal)
     end
     return nothing
 end

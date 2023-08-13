@@ -12,18 +12,18 @@ function _srcdest_to_rankarray(srcdest)
     return srcdest
 end
 
-struct MPIEventNeighbors
+struct DistributedEventNeighbors
     open_srcs::Vector{Int}
     open_dst::Vector{Int}
 end
 
 """
 $(SIGNATURES)
-Creates a MPIEventNeighbors from an MPIEvent.
+Creates a DistributedEventNeighbors from an DistributedEvent.
 This struct is used to keep trakc of the communication pairs for each event
 while constructing the edges of the communication graph.
 """
-function MPIEventNeighbors(ev::MPIEvent)
+function DistributedEventNeighbors(ev::DistributedEvent)
     srcdest = getsrcdest(ev)
     if isnothing(srcdest)
         srcdest = (src = nothing, dest = nothing)
@@ -44,26 +44,26 @@ function MPIEventNeighbors(ev::MPIEvent)
     if ev.rank in opensrcs
         opensrcs = [ev.rank]
     end
-    MPIEventNeighbors(opensrcs, opendests)
+    DistributedEventNeighbors(opensrcs, opendests)
 end
 
 """
 $(SIGNATURES)
 Generates the edges of a directed communication graph, where the edges represent 
-communication between two `MPIEvent`s.
+communication between two `DistributedEvent`s.
 
-The method returns an Array of `Tuple{MPIEvent, MPIEvent}`. Every tuple directed edge between MPI calls that exchanged data.
+The method returns an Array of `Tuple{DistributedEvent, DistributedEvent}`. Every tuple directed edge between MPI calls that exchanged data.
 In consequence, a MPI_Send call and its matching MPI_Recv call will result in a single edge in the graph whereas a MPI_Bcast
 over `n` ranks will lead to `n - 1` edges since the root will exchange data with all other ranks.
 
 The methods checks for completeness of the created graph and throws an error, if not all MPI calls can be matched.
 Setting `check = false` will skip these tests.
 """
-function get_edges(tape::Array{MPIEvent}; check = true)
+function get_edges(tape::Array{DistributedEvent}; check = true)
     # Data structure containing communication edges
-    edges = Tuple{MPIEvent, MPIEvent}[]
+    edges = Tuple{DistributedEvent, DistributedEvent}[]
     # temporary data to keep track of left communication pairs
-    open_links = MPIEventNeighbors[MPIEventNeighbors(e) for e in tape]
+    open_links = DistributedEventNeighbors[DistributedEventNeighbors(e) for e in tape]
     # Start finding communication pairs for global list of MPI calls
     for (e, l) in zip(tape, open_links)
         verbose() && println("Event: $(e) $(l.open_srcs) $(l.open_dst)")

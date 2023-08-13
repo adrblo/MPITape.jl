@@ -1,4 +1,4 @@
-struct MPIEvent{S, A, D}
+struct DistributedEvent{S, A, D}
     rank::Int64         # ranks
     f::S                # function
     argtypes::A         # arguments or other extra information
@@ -7,7 +7,7 @@ struct MPIEvent{S, A, D}
     t_end::Float64      # end time
 end
 
-function Base.show(io::IO, ::MIME"text/plain", ev::MPIEvent)
+function Base.show(io::IO, ::MIME"text/plain", ev::DistributedEvent)
     summary(io, ev)
     println(io)
     println(io, "├ Rank: ", ev.rank)
@@ -17,11 +17,11 @@ function Base.show(io::IO, ::MIME"text/plain", ev::MPIEvent)
     print(io, "└ Time: ", ev.t_start, " - ", ev.t_end)
 end
 
-function Base.show(io::IO, ev::MPIEvent)
-    print(io, "MPITape.MPIEvent($(ev.rank), $(ev.f), ..., $(ev.t_start), $(ev.t_end))")
+function Base.show(io::IO, ev::DistributedEvent)
+    print(io, "MPITape.DistributedEvent($(ev.rank), $(ev.f), ..., $(ev.t_start), $(ev.t_end))")
 end
 
-function getsrcdest(ev::MPIEvent)
+function getsrcdest(ev::DistributedEvent)
     if isempty(ev.args_subset)
         return nothing
     end
@@ -31,7 +31,7 @@ function getsrcdest(ev::MPIEvent)
     return nothing
 end
 
-function gettag(ev::MPIEvent)
+function gettag(ev::DistributedEvent)
     if isempty(ev.args_subset)
         return nothing
     end

@@ -25,7 +25,7 @@ Reads all tapes from disk and merges them into a single "merged tape".
 function readall_and_merge(dir = pwd(); prefix = default_fprefix())
     filenames = filter(x -> startswith(x, prefix) && endswith(x, default_fext()),
                        readdir(dir))
-    tape_merged = MPIEvent[]
+    tape_merged = DistributedEvent[]
     for fn in filenames
         f = joinpath(dir, fn)
         append!(tape_merged, read(f))

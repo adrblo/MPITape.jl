@@ -61,7 +61,50 @@ const MPIFunctions = [
     # MPI.API.MPI_Neighbor_alltoallv!,
 ]
 
-for (mpifunc, srcdest) in MPIFunctions
+function overdub_mpi()
+    for (mpifunc, srcdest) in MPIFunctions
+        if isempty(srcdest)
+            # fallback: no argvals
+            args_quote = quote
+                argvals = ()
+            end
+        else
+            src = srcdest[1]
+            dest = srcdest[2]
+            args_quote = quote
+                argvals = (; src = $(src), dest = $(dest))
+            end
+        end
+
+        eval(quote
+                function Cassette.prehook(ctx::MPITapeCtx{DistributedEventTrace},
+                                        f::typeof($mpifunc), args...)
+                    verbose() && println("PREHOOK: ", f, args)
+                    ctx.metadata.start_time = MPI.Wtime() - TIME_START[]
+                end
+
+                function Cassette.posthook(ctx::MPITapeCtx{DistributedEventTrace}, _,
+                                            f::typeof($mpifunc),
+                                            args...)
+                    rank = getrank()
+                    argtypes = typeof.(args)
+                    $args_quote
+                    verbose() && println("POSTHOOK: ", f, argtypes)
+                    push!(TAPE,
+                        DistributedEvent(rank,
+                                    string(f),
+                                    argtypes,
+                                    argvals,
+                                    ctx.metadata.start_time,
+                                    MPI.Wtime() - TIME_START[]))
+                    return nothing
+                end
+            end)
+    end
+end
+
+
+function new_overdub(mpifunc, srcdest)
     if isempty(srcdest)
         # fallback: no argvals
         args_quote = quote
@@ -76,27 +119,27 @@ for (mpifunc, srcdest) in MPIFunctions
     end
 
     eval(quote
-             function Cassette.prehook(ctx::MPITapeCtx{MPIEventTrace},
-                                       f::typeof($mpifunc), args...)
-                 verbose() && println("PREHOOK: ", f, args)
-                 ctx.metadata.start_time = MPI.Wtime() - TIME_START[]
-             end
+                function Cassette.prehook(ctx::MPITapeCtx{DistributedEventTrace},
+                                        f::typeof($mpifunc), args...)
+                    verbose() && println("PREHOOK: ", f, args)
+                    ctx.metadata.start_time = MPI.Wtime() - TIME_START[]
+                end
 
-             function Cassette.posthook(ctx::MPITapeCtx{MPIEventTrace}, _,
+                function Cassette.posthook(ctx::MPITapeCtx{DistributedEventTrace}, _,
                                         f::typeof($mpifunc),
                                         args...)
-                 rank = getrank()
-                 argtypes = typeof.(args)
-                 $args_quote
-                 verbose() && println("POSTHOOK: ", f, argtypes)
-                 push!(TAPE,
-                       MPIEvent(rank,
+                    rank = getrank()
+                    argtypes = typeof.(args)
+                    $args_quote
+                    verbose() && println("POSTHOOK: ", f, argtypes)
+                    push!(TAPE,
+                        DistributedEvent(rank,
                                 string(f),
                                 argtypes,
                                 argvals,
                                 ctx.metadata.start_time,
                                 MPI.Wtime() - TIME_START[]))
-                 return nothing
-             end
-         end)
+                    return nothing
+                end
+            end)
 end

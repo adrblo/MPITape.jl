@@ -1,7 +1,7 @@
 verbose() = false
 gettape() = copy(TAPE)
 unsafe_gettape() = TAPE
-function unsafe_settape(tape::AbstractVector{<:MPIEvent})
+function unsafe_settape(tape::AbstractVector{<:DistributedEvent})
     resize!(unsafe_gettape(), length(new_tape))
     copyto!(unsafe_gettape(), new_tape)
     return unsafe_gettape()
@@ -13,9 +13,9 @@ reset() = empty!(unsafe_gettape())
 Holding data that is required to be exchanged between `prehook` and `posthook` 
 (i.e. the start time of the call)
 """
-mutable struct MPIEventTrace
+mutable struct DistributedEventTrace
     start_time::Float64
-    MPIEventTrace() = new(0.0)
+    DistributedEventTrace() = new(0.0)
 end
 
 function record(f, args...)
@@ -23,7 +23,7 @@ function record(f, args...)
     mpi_maybeinit()
     MPI.Barrier(MPI.COMM_WORLD)
     TIME_START[] = MPI.Wtime()
-    result = Cassette.overdub(MPITapeCtx(metadata = MPIEventTrace()), f, args...)
+    result = Cassette.overdub(MPITapeCtx(metadata = DistributedEventTrace()), f, args...)
     return result
 end
 

@@ -1,14 +1,14 @@
 using Plots
 using Kroki
 
-function _plot_edges(edges::Array{Tuple{MPIEvent, MPIEvent}})
+function _plot_edges(edges::Array{Tuple{DistributedEvent, DistributedEvent}})
     for (src, dst) in edges
         plot!([src.t_end, dst.t_end], [src.rank, dst.rank], arrow = true, color = :black,
               label = "")
     end
 end
 
-function _event_to_rect(ev::MPIEvent; color = :blue)
+function _event_to_rect(ev::DistributedEvent; color = :blue)
     plot!(Shape([ev.t_start, ev.t_end, ev.t_end, ev.t_start],
                 [ev.rank - 0.25, ev.rank - 0.25, ev.rank + 0.25, ev.rank + 0.25]),
           color = color,
@@ -18,17 +18,17 @@ end
 """
 $(SIGNATURES)
 Plots a gantt chart of the recorded MPI API calls and store it to a file.
-Additionally draws arrows between communicating `MPIEvent`s.
+Additionally draws arrows between communicating `DistributedEvent`s.
 
 
 """
-function plot_merged(tape::Array{MPIEvent}; palette = palette(:Accent_8),
+function plot_merged(tape::Array{DistributedEvent}; palette = palette(:Accent_8),
                      fname = "gantt.png")
     plot()
     unique_calls = unique([ev.f for ev in tape])
-    for mpievent in tape
-        _event_to_rect(mpievent,
-                       color = palette[findall(x -> x == mpievent.f, unique_calls)[1]])
+    for DistributedEvent in tape
+        _event_to_rect(DistributedEvent,
+                       color = palette[findall(x -> x == DistributedEvent.f, unique_calls)[1]])
     end
     for (col, call) in zip(palette[1:length(unique_calls)], unique_calls)
         plot!(Shape([0], [0]), color = col, label = string(call))
